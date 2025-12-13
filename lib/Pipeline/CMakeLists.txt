@@ -13,6 +13,7 @@ add_mlir_library(NovaPipelines
   MLIRSupport
   MLIRIR
   AffineFullUnroll 
+  AffineTransforms 
   MLIRNova
   
   MLIRNovaToArithTransforms

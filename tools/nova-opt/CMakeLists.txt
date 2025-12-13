@@ -56,10 +56,7 @@ target_link_libraries(nova-opt PRIVATE
   MLIRToLLVMIRTranslationRegistration
   MLIRLLVMToLLVMIRTranslation
 
-  # Test support for linalg patterns
-  MLIRTestDialect
-  MLIRTestTransforms
-  MLIRLinalgTestPasses
+
 )
 
 install(TARGETS nova-opt RUNTIME DESTINATION bin)

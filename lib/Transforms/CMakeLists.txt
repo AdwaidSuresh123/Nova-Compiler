@@ -19,3 +19,4 @@ add_mlir_library(CompilerTransforms
   MLIRSCFDialect
   MLIRLinalgDialect
 )
+add_subdirectory(Affine)

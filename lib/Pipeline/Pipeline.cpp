@@ -38,8 +38,10 @@
 #include "Compiler/Translation/NovaToArith/NovaToArith.h"
 #include "Compiler/Translation/NovaToTosa/NovaToTosa.h"
 #include "Compiler/Translation/NovaToLinalg/NovaToLinalg.h"
+
 // header of this file
 #include "Compiler/Pipeline/Pipeline.h"
+#include "Compiler/Transforms/Affine/DependencyAnalysisTestPass.h"
 
 using namespace mlir;
 
@@ -51,6 +53,7 @@ namespace nova {
 
 void mlir::nova::createNovaPipelines(OpPassManager &pm) {
   //pm.addPass(createCanonicalizerPass());
+  pm.addPass(std::make_unique<DependencyAnalysisTestPass>());
   
   // Lower Nova dialect to standard dialects 
 //pm.addNestedPass<func::FuncOp>(ceateNovaToLinalg());  

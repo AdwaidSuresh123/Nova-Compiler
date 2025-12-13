@@ -13,6 +13,7 @@ install(
         CompilerTransforms
         NovaPipelines
         AffineFullUnroll
+        AffineTransforms
         MLIRNovaToArithTransforms
         MLIRNovaToLinalgTransforms
         MLIRNovaToTosaTransforms

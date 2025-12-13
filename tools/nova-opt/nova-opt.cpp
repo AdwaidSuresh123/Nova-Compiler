@@ -31,6 +31,7 @@
 #include "Compiler/Translation/NovaToTosa/NovaToTosa.h"
 #include "Compiler/Translation/NovaToLinalg/NovaToLinalg.h"
 #include "Compiler/Pipeline/Pipeline.h"
+#include "Compiler/Transforms/Affine/DependencyAnalysisTestPass.h"
 
 namespace mlir {
 namespace nova {
@@ -74,6 +75,7 @@ int main(int argc, char **argv) {
   mlir::nova::registerNovaToArithLoweringPass();
   mlir::nova::registerNovaToTosaLoweringPass();
   mlir::nova::regsiterNovaToLinalgLoweringTemplatePass();
+  mlir::registerDependencyAnalysisTestPass();
 
   return mlir::asMainReturnCode(
       mlir::MlirOptMain(argc, argv, "Nova dialect optimizer\n", registry));

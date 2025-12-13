@@ -39,3 +39,5 @@ install(
         ${CMAKE_CURRENT_BINARY_DIR}/Passes.h.inc
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Compiler/Transforms"
 )
+
+add_subdirectory(Affine)
