@@ -138,9 +138,6 @@ struct FuseMatmulBiasPattern : public OpRewritePattern<GenericOp> {
     auto rhstensor = llvm::dyn_cast<TensorType>(operands[1].getType());
     Type biasLhsElementType = lhstensor.getElementType();
     Type biasRhsElementType = rhstensor.getElementType();
-    unsigned biasBitwidth1 = biasLhsElementType.getIntOrFloatBitWidth();
-    unsigned biasBitwidth2 = biasRhsElementType.getIntOrFloatBitWidth();
-
 
     Value output = transformedBias;
 

@@ -102,7 +102,7 @@ static LogicalResult BinaryTypePromotionReturnType(MLIRContext *context, std::op
     case 64:
       resultType = builder.getI64Type();
       break;
-
+    case 32:
       resultType = builder.getI32Type();
       break;
     case 16:
@@ -130,7 +130,100 @@ static LogicalResult BinaryTypePromotionReturnType(MLIRContext *context, std::op
       RankedTensorType::get(*broadcastedShape, resulType));
   return success();
 }
-
+//type promotion but no complex support
+static LogicalResult BinarynocomplexTypePromotionReturnType(MLIRContext *context, std::optional<Location> loc, ValueRange operands,
+                                                   DictionaryAttr attributes, OpaqueProperties properties,
+                                                   RegionRange regions, llvm::SmallVectorImpl<Type> &inferredReturnTypes)
+{
+  mlir::Builder builder(context);
+  auto lhstensor = llvm::dyn_cast<TensorType>(operands[0].getType());
+  auto rhstensor = llvm::dyn_cast<TensorType>(operands[1].getType());
+  Type lhselemtype = lhstensor.getElementType();
+  Type rhselemType = rhstensor.getElementType();
+  // 1..finding shape
+   lhstensor = llvm::dyn_cast<TensorType>(operands[0].getType());
+   rhstensor = llvm::dyn_cast<TensorType>(operands[1].getType());
+   auto broadcastedShape = computeBroadcastShape(lhstensor.getShape(),
+                                                rhstensor.getShape());
+  if (!broadcastedShape)
+  {
+    if (loc)
+    {
+      mlir::emitError(*loc)
+          << "incompatible shapes for broadcasting - "
+          << lhstensor << " and " << rhstensor;
+    }
+    return failure();
+  }
+  // 2.fiding dtype
+  lhselemtype = lhstensor.getElementType();
+  rhselemType = rhstensor.getElementType();
+  unsigned resultbitwidth = 0;
+  auto flhstype = dyn_cast<mlir::FloatType>(lhselemtype);
+  auto frhstype = dyn_cast<mlir::FloatType>(rhselemType);
+  auto ilhstype = dyn_cast<mlir::IntegerType>(lhselemtype);
+  auto irhstype = dyn_cast<mlir::IntegerType>(rhselemType);
+  // if both float, get higher bitwidth
+  if (flhstype && frhstype)
+  {
+    unsigned lhsbitwidth = flhstype.getWidth();
+    unsigned rhsbitwidth = frhstype.getWidth();
+    resultbitwidth = lhsbitwidth > rhsbitwidth ? lhsbitwidth : rhsbitwidth;
+  }
+  // if lhs float and rhs is int get lhs bitwidth
+  else if (flhstype && irhstype)
+  {
+    unsigned lhsbitwidth = flhstype.getWidth();
+    unsigned rhsbitwidth = irhstype.getWidth();
+    resultbitwidth = lhsbitwidth > rhsbitwidth ? lhsbitwidth : rhsbitwidth;
+  }
+  // if rhs float and lhs is int get rhs bitwidth
+  else if (ilhstype && frhstype)
+  {
+    unsigned lhsbitwidth = ilhstype.getWidth();
+    unsigned rhsbitwidth = frhstype.getWidth();
+    resultbitwidth = lhsbitwidth > rhsbitwidth ? lhsbitwidth : rhsbitwidth;
+  }
+  // if both integer get higher bitwidth and push back the result int type
+  else if(ilhstype && irhstype)
+  {
+    unsigned lhsbitwidth = ilhstype.getWidth();
+    unsigned rhsbitwidth = irhstype.getWidth();
+    resultbitwidth = lhsbitwidth > rhsbitwidth ? lhsbitwidth : rhsbitwidth;
+    auto resultType = builder.getI8Type();
+    switch (resultbitwidth)
+    {
+    case 64:
+      resultType = builder.getI64Type();
+      break;
+    case 32:
+      resultType = builder.getI32Type();
+      break;
+    case 16:
+      resultType = builder.getI16Type();
+    }
+    inferredReturnTypes.push_back(
+        RankedTensorType::get(*broadcastedShape, resultType));
+    return success();
+  }
+  else{
+    inferredReturnTypes.push_back(
+        RankedTensorType::get(*broadcastedShape, lhselemtype));
+        return success();
+  }
+  auto resulType = builder.getF16Type();
+  switch (resultbitwidth)
+  {
+  case 64:
+    resulType = builder.getF64Type();
+    break;
+  case 32:
+    resulType = builder.getF32Type();
+  }
+  inferredReturnTypes.push_back(
+      RankedTensorType::get(*broadcastedShape, resulType));
+  return success();
+}
 // float promotion for result type
 static LogicalResult BinaryFloatPromotionReturnType(MLIRContext *context, std::optional<Location> loc, ValueRange operands,
                                                     DictionaryAttr attributes, OpaqueProperties properties,
@@ -526,7 +619,8 @@ LogicalResult MaxOp::inferReturnTypes(
     DictionaryAttr attributes, OpaqueProperties properties,
     RegionRange regions, llvm::SmallVectorImpl<Type> &inferredReturnTypes)
 {
-  return BinaryTypePromotionReturnType(
+  return BinarynocomplexTypePromotionReturnType(
+
       context, loc, operands, attributes, properties, regions, inferredReturnTypes);
 }
 

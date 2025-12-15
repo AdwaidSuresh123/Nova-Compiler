@@ -20,7 +20,7 @@ target_link_libraries(nova-opt PRIVATE
   # Your custom libraries
   MLIRNova
   CompilerTransforms
-  AffineFullUnroll
+  MLIRAffineTransformPasses
   
   MLIRNovaToArithTransforms
   MLIRNovaToLinalgTransforms

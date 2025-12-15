@@ -771,7 +771,7 @@ def Nova_PowOp : Nova_BinaryOp<"pow", []> {
   }];
 }
 
-def Nova_MaxOp : Nova_BinaryOp<"max", [Commutative]> {
+def Nova_MaxOp : Nova_BinaryOp<"max", [Commutative,NoComplexOperands]> {
   let summary = "Elementwise tensor maximum";
   let description = [{
     Performs element-wise max operation on tensors.

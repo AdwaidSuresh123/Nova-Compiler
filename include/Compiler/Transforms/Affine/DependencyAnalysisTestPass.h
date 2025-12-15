@@ -25,7 +25,7 @@ class DependencyAnalysisTestPass
 
 public:
     StringRef getArgument() const override {
-        return "test-dependency-analysis";
+        return "loop-unroll";
     }
 
     StringRef getDescription() const override {

@@ -12,7 +12,7 @@ add_mlir_library(NovaPipelines
   MLIRTransforms
   MLIRSupport
   MLIRIR
-  AffineFullUnroll 
+  MLIRAffineTransformPasses 
   AffineTransforms 
   MLIRNova
   

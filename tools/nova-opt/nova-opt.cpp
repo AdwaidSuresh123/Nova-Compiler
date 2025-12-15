@@ -22,7 +22,7 @@
 #include "Compiler/Dialect/nova/NovaDialect.h"
 #include "Compiler/Dialect/nova/NovaOps.h"
 #include "Compiler/Transforms/CleanupPass.h"
-#include "Compiler/Transforms/AffineFullUnroll.h"
+#include "Compiler/Transforms/Affine/AffineFullUnroll.h"
 #include "Compiler/Transforms/FuseMatmulBias.h"
 #include "Compiler/Transforms/FastmathFlag.h"
 #include "Compiler/Transforms/ParallelizeOuterLoops.h"
