@@ -8,6 +8,7 @@
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/IR/BuiltinTypes.h"
 #include "mlir/IR/TypeUtilities.h"
+#include "mlir/IR/Matchers.h"
 
 using namespace mlir;
 using namespace mlir::nova;
@@ -560,15 +561,59 @@ struct SimplifyMinSelf : public OpRewritePattern<MinOp> {
 
 } // namespace
 
+static Attribute subIntAttrs(Builder &builder, Attribute lhs, Attribute rhs) {
+  auto lhsAttr = dyn_cast<DenseElementsAttr>(lhs);
+  auto rhsAttr = dyn_cast<DenseElementsAttr>(rhs);
+  
+  if (!lhsAttr || !rhsAttr) return {};
+  
+  auto elementType = lhsAttr.getElementType();
+  if (elementType != rhsAttr.getElementType()) return {};
+  
+  if (isa<IntegerType>(elementType)) {
+    if (lhsAttr.isSplat() && rhsAttr.isSplat()) {
+      APInt val1 = lhsAttr.getSplatValue<APInt>();
+      APInt val2 = rhsAttr.getSplatValue<APInt>();
+      APInt result = val1 - val2;
+      return DenseElementsAttr::get(cast<ShapedType>(lhsAttr.getType()), result);
+    }
+  }
+  else if(isa<FloatType>(elementType)){
+    if (lhsAttr.isSplat() && rhsAttr.isSplat()){
+      APFloat val1 = lhsAttr.getSplatValue<APFloat>();
+      APFloat val2 = rhsAttr.getSplatValue<APFloat>();
+      APFloat result = val1;
+      result.subtract(val2, APFloat::rmNearestTiesToEven);
+      return DenseElementsAttr::get(cast<ShapedType>(lhsAttr.getType()), result);
+    }
+  }
+  return {};
+}
+
+static bool canFoldSub(Attribute lhs, Attribute rhs) {
+  auto lhsAttr = dyn_cast<DenseElementsAttr>(lhs);
+  auto rhsAttr = dyn_cast<DenseElementsAttr>(rhs);
+  
+  if (!lhsAttr || !rhsAttr) return false;
+  if (lhsAttr.getElementType() != rhsAttr.getElementType()) return false;
+  
+  if (!lhsAttr.isSplat() || !rhsAttr.isSplat()) return false;
+  
+  return isa<IntegerType>(lhsAttr.getElementType()) || isa<FloatType>(lhsAttr.getElementType());
+}
+
 //===----------------------------------------------------------------------===//
 // Populate Canonicalization Patterns (called from each Op)
 //===----------------------------------------------------------------------===//
+
+#include "Compiler/Dialect/nova/NovaCanonicalization.inc"
 
 void AddOp::getCanonicalizationPatterns(RewritePatternSet &results, 
                                         MLIRContext *context) {
   results.add<InsertBroadcastPattern<AddOp>>(context);
   results.add<EliminateAddZero>(context);
   results.add<CombineAddConstants>(context);
+  populateWithGenerated(results);
  results.add<ConstantFoldAdd>(context);
 }
 

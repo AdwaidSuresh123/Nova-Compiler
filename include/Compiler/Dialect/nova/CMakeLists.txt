@@ -7,8 +7,15 @@ mlir_tablegen(NovaOpsEnums.h.inc -gen-enum-decls)
 mlir_tablegen(NovaOpsEnums.cpp.inc -gen-enum-defs)
 mlir_tablegen(NovaOpsAttributes.h.inc -gen-attrdef-decls)
 mlir_tablegen(NovaOpsAttributes.cpp.inc -gen-attrdef-defs)
+set(LLVM_TARGET_DEFINITIONS NovaCanonicalizations.td)
+mlir_tablegen(NovaCanonicalization.inc -gen-rewriters)
+set(LLVM_TARGET_DEFINITIONS NovaOps.td)
+mlir_tablegen(NovaPatterns.inc -gen-rewriters)
 add_public_tablegen_target(MLIRNovaOpsIncGen)
 add_dependencies(mlir-headers MLIRNovaOpsIncGen)
+
+
+
 
 # Install generated header files
 install(
