@@ -8,6 +8,7 @@ include "mlir/IR/BuiltinTypeInterfaces.td"
 
 include "NovaDialect.td"
 include "mlir/IR/EnumAttr.td"
+include "mlir/IR/PatternBase.td"
 include "mlir/IR/BuiltinTypes.td" 
 //traits
 def NoComplexOperands : NativeOpTrait<"NoComplexOperands">;
@@ -707,7 +708,6 @@ class Nova_BinaryOp<string mnemonic, list<Trait> commonTraits = []>:
 //===----------------------------------------------------------------------===//
 // Binary Operations
 //===----------------------------------------------------------------------===//
-
 def Nova_AddOp : Nova_BinaryOp<"add", [Commutative]> {
   let summary = "Elementwise tensor addition";
   let description = [{
@@ -716,6 +716,7 @@ def Nova_AddOp : Nova_BinaryOp<"add", [Commutative]> {
     Example:
       %r = nova.add %a, %b : tensor<2x3xf32>, tensor<3xf32> -> tensor<2x3xf32>
   }];
+  let hasCanonicalizer =1;
 }
 
 def Nova_SubOp : Nova_BinaryOp<"sub", []> {
