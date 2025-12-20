@@ -6,6 +6,7 @@
 #include "mlir/Transforms/DialectConversion.h"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
+#include "mlir/Dialect/Tosa/IR/TosaOps.h"
 
 #include "Compiler/Translation/NovaToLinalg/NovaToLinalg.h"
 #include "Compiler/Dialect/nova/NovaOps.h"
@@ -397,7 +398,51 @@ namespace mlir
     //-------------------------------------------------------------------
     // Transpose
     //-------------------------------------------------------------------
-
+ struct NovaDivopLowering:public OpConversionPattern<nova::DivOp>{
+  using OpConversionPattern<nova::DivOp>::OpConversionPattern;
+  LogicalResult matchAndRewrite(nova::DivOp op, OpAdaptor adaptor,
+                      ConversionPatternRewriter &rewriter) const override{
+                        
+        auto lhs = llvm::dyn_cast<TensorType>(op.getLhs().getType());
+        auto operands = adaptor.getOperands();
+        auto rhs =llvm::dyn_cast<TensorType>(op.getRhs().getType());
+        auto resultType = llvm::dyn_cast<RankedTensorType>(op.getType());
+        auto resultshape=dyn_cast<RankedTensorType>(resultType).getShape();
+        auto input1=rewriter.create<tosa::CastOp>(op.getLoc(),resultType,operands[0]);
+        auto input2=rewriter.create<tosa::CastOp>(op.getLoc(),resultType,operands[1]);
+        auto output = rewriter.create<tensor::EmptyOp>(
+       op.getLoc(), resultshape, op.getResult().getType().getElementType()); 
+     rewriter.replaceOpWithNewOp<linalg::DivOp>(
+       op,ValueRange{input1,input2},ValueRange{output} );
+       return success();
+      }
+       
+      //   if(isa<ComplexType>(tensorTy.getElementType())){
+        //   OpBuilder *builder;
+        //   // Need to use linalg.generic to apply complex.exp element-wise
+        //   auto loc = op.getLoc();
+        //   auto resultTensorType = llvm::cast<RankedTensorType>(resultType);
+          
+        //   Value emptyTensor = builder->create<tensor::EmptyOp>(
+        //       loc, resultTensorType.getShape(), resultTensorType.getElementType());
+          
+        //   auto identityMap = builder->getMultiDimIdentityMap(resultTensorType.getRank());
+        //   SmallVector<AffineMap> indexingMaps = {identityMap, identityMap};
+        //   SmallVector<utils::IteratorType> iteratorTypes(
+        //       resultTensorType.getRank(), utils::IteratorType::parallel);
+          
+        //   auto genericOp = builder->create<linalg::GenericOp>(
+        //       loc, TypeRange{resultType}, input[0], emptyTensor,
+        //       indexingMaps, iteratorTypes,
+        //       [&](OpBuilder &b, Location loc, ValueRange args) {
+        //         // args[0] is complex<f32> (scalar)
+        //         Value exp = b.create<complex::DivOp>(loc, args[0]);
+        //         b.create<linalg::YieldOp>(loc, exp);
+        //       });
+          
+        //   return genericOp.getResult(0);
+    //   }               
+  };
     struct NovaTransposeOpLowering : public OpConversionPattern<nova::TransposeOp>
     {
       using OpConversionPattern<nova::TransposeOp>::OpConversionPattern;
@@ -441,7 +486,8 @@ namespace mlir
     {
       patterns.add<NovaMatmulOpLowering,
                    NovaBroadcastInDimOpLowering,
-                   NovaTransposeOpLowering
+                   NovaTransposeOpLowering,
+                   NovaDivopLowering
                    //    ,NovaSquareOpLowering
                    >(patterns.getContext());
     }

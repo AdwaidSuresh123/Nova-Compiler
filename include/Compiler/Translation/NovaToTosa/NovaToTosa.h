@@ -11,6 +11,7 @@ namespace mlir{
         std::unique_ptr<Pass> createNovaToTosaLoweringPass();
         void registerNovaToTosaLoweringPass();
         void populateNovaToTosaConversionPatterns(RewritePatternSet &patterns);
+        void populateNovaToTosaTemplatePatterns(RewritePatternSet &Patterns);
 
     }
 }

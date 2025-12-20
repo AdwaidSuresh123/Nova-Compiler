@@ -13,6 +13,7 @@
 #include "mlir/Dialect/Complex/IR/Complex.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/IR/AffineMap.h"
+#include "mlir/Dialect/Complex/IR/Complex.h"
 
 #include "Compiler/Translation/NovaToTosa/NovaToTosa.h"
 #include "Compiler/Dialect/nova/NovaOps.h"
@@ -115,7 +116,109 @@ namespace mlir
 
         return builder->create<tosa::LogicalOrOp>(op.getLoc(), resultType, v, w);
       }
+        //log op
+      static Value mappingtosa(nova::LogOp op, Type resultType, ValueRange input, OpBuilder *builder)
+      {
+        //if complex type use complex.exp
 
+        auto tensorTy = llvm::dyn_cast<TensorType>(input[0].getType());
+        if(isa<ComplexType>(tensorTy.getElementType())){
+          // Need to use linalg.generic to apply complex.exp element-wise
+          auto loc = op.getLoc();
+          auto resultTensorType = llvm::cast<RankedTensorType>(resultType);
+          
+          Value emptyTensor = builder->create<tensor::EmptyOp>(
+              loc, resultTensorType.getShape(), resultTensorType.getElementType());
+          
+          auto identityMap = builder->getMultiDimIdentityMap(resultTensorType.getRank());
+          SmallVector<AffineMap> indexingMaps = {identityMap, identityMap};
+          SmallVector<utils::IteratorType> iteratorTypes(
+              resultTensorType.getRank(), utils::IteratorType::parallel);
+          
+          auto genericOp = builder->create<linalg::GenericOp>(
+              loc, TypeRange{resultType}, input[0], emptyTensor,
+              indexingMaps, iteratorTypes,
+              [&](OpBuilder &b, Location loc, ValueRange args) {
+                // args[0] is complex<f32> (scalar)
+                Value exp = b.create<complex::LogOp>(loc, args[0]);
+                b.create<linalg::YieldOp>(loc, exp);
+              });
+          
+          return genericOp.getResult(0);
+        }
+        //cast operation to result data type
+        auto restensor= dyn_cast<TensorType>(resultType);
+        auto v = builder->create<tosa::CastOp>(op.getLoc(), restensor, input[0]);
+
+        return builder->create<tosa::LogOp>(op.getLoc(), resultType, v);
+      }
+      //exp op
+      static Value mappingtosa(nova::ExpOp op, Type resultType, ValueRange input, OpBuilder *builder)
+      {
+        //if complex type use complex.exp
+
+        auto tensorTy = llvm::dyn_cast<TensorType>(input[0].getType());
+        if(isa<ComplexType>(tensorTy.getElementType())){
+          // Need to use linalg.generic to apply complex.exp element-wise
+          auto loc = op.getLoc();
+          auto resultTensorType = llvm::cast<RankedTensorType>(resultType);
+          
+          Value emptyTensor = builder->create<tensor::EmptyOp>(
+              loc, resultTensorType.getShape(), resultTensorType.getElementType());
+          
+          auto identityMap = builder->getMultiDimIdentityMap(resultTensorType.getRank());
+          SmallVector<AffineMap> indexingMaps = {identityMap, identityMap};
+          SmallVector<utils::IteratorType> iteratorTypes(
+              resultTensorType.getRank(), utils::IteratorType::parallel);
+          
+          auto genericOp = builder->create<linalg::GenericOp>(
+              loc, TypeRange{resultType}, input[0], emptyTensor,
+              indexingMaps, iteratorTypes,
+              [&](OpBuilder &b, Location loc, ValueRange args) {
+                // args[0] is complex<f32> (scalar)
+                Value exp = b.create<complex::ExpOp>(loc, args[0]);
+                b.create<linalg::YieldOp>(loc, exp);
+              });
+          
+          return genericOp.getResult(0);
+        }
+        //cast operation to result data type
+        auto restensor= dyn_cast<TensorType>(resultType);
+        auto v = builder->create<tosa::CastOp>(op.getLoc(), restensor, input[0]);
+
+        return builder->create<tosa::ExpOp>(op.getLoc(), resultType, v);
+      }
+      //abs op
+      static Value mappingtosa(nova::AbsOp op, Type resultType, ValueRange input, OpBuilder *builder)
+      {
+    //if complex type use complex.abs 
+        auto tensorTy = llvm::dyn_cast<TensorType>(input[0].getType());
+        if(isa<ComplexType>(tensorTy.getElementType())){
+          // Need to use linalg.generic to apply complex.abs element-wise
+          auto loc = op.getLoc();
+          auto resultTensorType = llvm::cast<RankedTensorType>(resultType);
+          
+          Value emptyTensor = builder->create<tensor::EmptyOp>(
+              loc, resultTensorType.getShape(), resultTensorType.getElementType());
+          
+          auto identityMap = builder->getMultiDimIdentityMap(resultTensorType.getRank());
+          SmallVector<AffineMap> indexingMaps = {identityMap, identityMap};
+          SmallVector<utils::IteratorType> iteratorTypes(
+              resultTensorType.getRank(), utils::IteratorType::parallel);
+          
+          auto genericOp = builder->create<linalg::GenericOp>(
+              loc, TypeRange{resultType}, input[0], emptyTensor,
+              indexingMaps, iteratorTypes,
+              [&](OpBuilder &b, Location loc, ValueRange args) {
+                // args[0] is complex<f32> (scalar)
+                Value abs = b.create<complex::AbsOp>(loc, args[0]);
+                b.create<linalg::YieldOp>(loc, abs);
+              });
+          
+          return genericOp.getResult(0);
+        }
+        return builder->create<tosa::AbsOp>(op.getLoc(), resultType, input[0]);
+      }
       static Value mappingtosa(nova::XorOp op, Type resultType, ValueRange input, OpBuilder *builder)
       {
         auto restensor = dyn_cast<mlir::TensorType>(resultType);
@@ -155,6 +258,117 @@ namespace mlir
           return genericOp.getResult(0);
         }
         return nullptr;
+      }
+      //=================================
+      //TRIGNOMENTARY
+      //=================================
+      //sin op
+      static Value mappingtosa(nova::SinOp op, Type resultType, ValueRange input, OpBuilder *builder)
+      {
+        //if complex type use complex.exp
+
+        auto tensorTy = llvm::dyn_cast<TensorType>(input[0].getType());
+        if(isa<ComplexType>(tensorTy.getElementType())){
+          // Need to use linalg.generic to apply complex.exp element-wise
+          auto loc = op.getLoc();
+          auto resultTensorType = llvm::cast<RankedTensorType>(resultType);
+          
+          Value emptyTensor = builder->create<tensor::EmptyOp>(
+              loc, resultTensorType.getShape(), resultTensorType.getElementType());
+          
+          auto identityMap = builder->getMultiDimIdentityMap(resultTensorType.getRank());
+          SmallVector<AffineMap> indexingMaps = {identityMap, identityMap};
+          SmallVector<utils::IteratorType> iteratorTypes(
+              resultTensorType.getRank(), utils::IteratorType::parallel);
+          
+          auto genericOp = builder->create<linalg::GenericOp>(
+              loc, TypeRange{resultType}, input[0], emptyTensor,
+              indexingMaps, iteratorTypes,
+              [&](OpBuilder &b, Location loc, ValueRange args) {
+                // args[0] is complex<f32> (scalar)
+                Value exp = b.create<complex::SinOp>(loc, args[0]);
+                b.create<linalg::YieldOp>(loc, exp);
+              });
+          
+          return genericOp.getResult(0);
+        }
+        //cast operation to result data type
+        auto restensor= dyn_cast<TensorType>(resultType);
+        auto v = builder->create<tosa::CastOp>(op.getLoc(), restensor, input[0]);
+
+        return builder->create<tosa::SinOp>(op.getLoc(), resultType, v);
+      }
+      //cos op
+      static Value mappingtosa(nova::CosOp op, Type resultType, ValueRange input, OpBuilder *builder)
+      {
+        //if complex type use complex.exp
+
+        auto tensorTy = llvm::dyn_cast<TensorType>(input[0].getType());
+        if(isa<ComplexType>(tensorTy.getElementType())){
+          // Need to use linalg.generic to apply complex.exp element-wise
+          auto loc = op.getLoc();
+          auto resultTensorType = llvm::cast<RankedTensorType>(resultType);
+          
+          Value emptyTensor = builder->create<tensor::EmptyOp>(
+              loc, resultTensorType.getShape(), resultTensorType.getElementType());
+          
+          auto identityMap = builder->getMultiDimIdentityMap(resultTensorType.getRank());
+          SmallVector<AffineMap> indexingMaps = {identityMap, identityMap};
+          SmallVector<utils::IteratorType> iteratorTypes(
+              resultTensorType.getRank(), utils::IteratorType::parallel);
+          
+          auto genericOp = builder->create<linalg::GenericOp>(
+              loc, TypeRange{resultType}, input[0], emptyTensor,
+              indexingMaps, iteratorTypes,
+              [&](OpBuilder &b, Location loc, ValueRange args) {
+                // args[0] is complex<f32> (scalar)
+                Value exp = b.create<complex::CosOp>(loc, args[0]);
+                b.create<linalg::YieldOp>(loc, exp);
+              });
+          
+          return genericOp.getResult(0);
+        }
+        //cast operation to result data type
+        auto restensor= dyn_cast<TensorType>(resultType);
+        auto v = builder->create<tosa::CastOp>(op.getLoc(), restensor, input[0]);
+
+        return builder->create<tosa::CosOp>(op.getLoc(), resultType, v);
+      }
+      //tanh
+       static Value mappingtosa(nova::TanhOp op, Type resultType, ValueRange input, OpBuilder *builder)
+      {
+        //if complex type use complex.exp
+
+        auto tensorTy = llvm::dyn_cast<TensorType>(input[0].getType());
+        if(isa<ComplexType>(tensorTy.getElementType())){
+          // Need to use linalg.generic to apply complex.exp element-wise
+          auto loc = op.getLoc();
+          auto resultTensorType = llvm::cast<RankedTensorType>(resultType);
+          
+          Value emptyTensor = builder->create<tensor::EmptyOp>(
+              loc, resultTensorType.getShape(), resultTensorType.getElementType());
+          
+          auto identityMap = builder->getMultiDimIdentityMap(resultTensorType.getRank());
+          SmallVector<AffineMap> indexingMaps = {identityMap, identityMap};
+          SmallVector<utils::IteratorType> iteratorTypes(
+              resultTensorType.getRank(), utils::IteratorType::parallel);
+          
+          auto genericOp = builder->create<linalg::GenericOp>(
+              loc, TypeRange{resultType}, input[0], emptyTensor,
+              indexingMaps, iteratorTypes,
+              [&](OpBuilder &b, Location loc, ValueRange args) {
+                // args[0] is complex<f32> (scalar)
+                Value exp = b.create<complex::TanhOp>(loc, args[0]);
+                b.create<linalg::YieldOp>(loc, exp);
+              });
+          
+          return genericOp.getResult(0);
+        }
+        //cast operation to result data type
+        auto restensor= dyn_cast<TensorType>(resultType);
+        auto v = builder->create<tosa::CastOp>(op.getLoc(), restensor, input[0]);
+
+        return builder->create<tosa::TanhOp>(op.getLoc(), resultType, v);
       }
       static Value mappingtosa(nova::ReciprocalOp op, Type resultType, ValueRange input, OpBuilder *builder)
       {
@@ -908,8 +1122,6 @@ namespace mlir
           return rewriter.notifyMatchFailure(op, "expected operands for tosa lowering operations");
         // getting resultType
         auto resultType = op.getResult().getType();
-        // if (!mlir::isa<RankedTensorType>(resultType))
-        //   return rewriter.notifyMatchFailure(op, "expected ranked tensor result");
         Value result = NovaOpTosaOp::maptop(
             op, resultType, operands, &rewriter);
         if (!result)
@@ -951,13 +1163,23 @@ namespace mlir
           target.addLegalDialect<tosa::TosaDialect, func::FuncDialect>();
           target.addLegalOp<nova::ConstantOp>();
           target.addIllegalOp<nova::ReluOp>();
+          target.addIllegalOp<nova::ExpOp>();
+          target.addIllegalOp<nova::LogOp>();
+          target.addIllegalOp<nova::AbsOp>();
           target.addIllegalOp<nova::MaxOp>();
           target.addIllegalOp<nova::MinOp>();
+          target.addIllegalOp<nova::SubOp>();
+          target.addIllegalOp<nova::MulOp>();
+          target.addIllegalOp<nova::PowOp>();
+          target.addIllegalOp<nova::SqrtOp>();
           target.addIllegalOp<nova::AndOp>();
           target.addIllegalOp<nova::OrOp>();
           target.addIllegalOp<nova::XorOp>();
           target.addIllegalOp<nova::NegOp>();
           target.addIllegalOp<nova::NotOp>();
+          target.addIllegalOp<nova::SinOp>();
+          target.addIllegalOp<nova::CosOp>();
+          target.addIllegalOp<nova::TanhOp>();
           target.addIllegalOp<nova::ReciprocalOp>();
           target.addIllegalOp<nova::ReduceOp>();
           target.addIllegalOp<nova::ArgmaxOp>();
@@ -966,12 +1188,15 @@ namespace mlir
           target.addIllegalOp<nova::GeluOp>();
           target.addIllegalOp<nova::SoftmaxOp>();
           target.addIllegalOp<nova::MatmulOp>();
+          target.addIllegalOp<nova::AddOp>();
           target.markUnknownOpDynamicallyLegal([](Operation *) { return true; });
           TypeConverter typeConverter;
           typeConverter.addConversion([](Type type)
                                       { return type; });
           RewritePatternSet patterns(&getContext());
           populateNovaToTosaConversionPatterns(patterns);
+          populateNovaToTosaTemplatePatterns(patterns);
+
 
           if (failed(applyPartialConversion(module, target, std::move(patterns))))
           {
@@ -990,8 +1215,14 @@ namespace mlir
                    NovaSoftmaxLoweringPattern,
                    NovaMatmulOpTosaLowering,
                    NovaToTosaLoweringTemplate<nova::MaxOp>,
+                   NovaToTosaLoweringTemplate<nova::LogOp>,
+                   NovaToTosaLoweringTemplate<nova::AbsOp>,
+                   NovaToTosaLoweringTemplate<nova::ExpOp>,
                    NovaToTosaLoweringTemplate<nova::MinOp>,
                    NovaToTosaLoweringTemplate<nova::AndOp>,
+                   NovaToTosaLoweringTemplate<nova::SinOp>,
+                   NovaToTosaLoweringTemplate<nova::CosOp>,
+                   NovaToTosaLoweringTemplate<nova::TanhOp>,
                    NovaToTosaLoweringTemplate<nova::OrOp>,
                    NovaToTosaLoweringTemplate<nova::XorOp>,
                    NovaToTosaLoweringTemplate<nova::NotOp>,

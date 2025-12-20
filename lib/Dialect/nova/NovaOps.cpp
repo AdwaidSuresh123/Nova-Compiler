@@ -457,6 +457,42 @@ LogicalResult DivOp::inferReturnTypes(
   return BinaryFloatPromotionReturnType(
       context, loc, operands, attributes, properties, regions, inferredReturnTypes);
 }
+LogicalResult nova::SqrtOp::inferReturnTypes(
+    MLIRContext *context,
+    std::optional<Location> location,
+    ValueRange operands,
+    DictionaryAttr attrs,
+    OpaqueProperties properties,
+    RegionRange regions,
+    SmallVectorImpl<Type> &inferredTypes) {
+
+  // sqrt is unary
+  if (operands.size() != 1)
+    return failure();
+
+  auto inputType = dyn_cast<TensorType>(operands[0].getType());
+  if (!inputType)
+    return failure();
+
+  auto elemTy = inputType.getElementType();
+
+  Type outElemTy;
+
+  // Integer → f32
+  if (isa<IntegerType>(elemTy)) {
+    outElemTy = Float32Type::get(context);
+  }
+  // Float → same float
+  else if (isa<FloatType>(elemTy)) {
+    outElemTy = elemTy;
+  }
+  else {
+    return failure();
+  }
+
+  inferredTypes.push_back(inputType.clone(outElemTy));
+  return success();
+}
 
 // ModOp
 

@@ -302,12 +302,22 @@ def Nova_SquareOp : Nova_UnaryOp<"square", [Pure, SameOperandsAndResultType,NoCo
   }];
 }
 
-def Nova_SqrtOp : Nova_UnaryOp<"sqrt", [Pure, SameOperandsAndResultType]> {
+def Nova_SqrtOp : Nova_UnaryOp<"sqrt", [Pure,InferTypeOpInterface]> {
   let arguments = (ins Nova_Tensor:$input);
   let results = (outs Nova_Tensor:$output);
   
   let assemblyFormat = [{
     $input attr-dict `:` type($input)
+  }];
+  let extraClassDeclaration = [{
+    static ::mlir::LogicalResult inferReturnTypes(
+      ::mlir::MLIRContext *context,
+      std::optional<::mlir::Location> loc,
+      ::mlir::ValueRange operands,
+      ::mlir::DictionaryAttr attributes,
+      ::mlir::OpaqueProperties properties,
+      ::mlir::RegionRange regions,
+      ::llvm::SmallVectorImpl<::mlir::Type> &inferredReturnTypes);
   }];
 }
 

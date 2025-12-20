@@ -9,6 +9,8 @@
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Math/IR/Math.h"
 #include "mlir/Dialect/Complex/IR/Complex.h"
+#include "mlir/Dialect/Tosa/IR/TosaOps.h"
+
 
 #include "Compiler/Translation/NovaToLinalg/NovaToLinalg.h"
 #include "Compiler/Dialect/nova/NovaOps.h"
@@ -99,50 +101,50 @@ namespace mlir
     }
     // function to select operation
     // if add choose add
-    static Value opdispatcher(nova::AddOp op, Value lhs, Value rhs, OpBuilder *builder)
-    {
+    // static Value opdispatcher(nova::AddOp op, Value lhs, Value rhs, OpBuilder *builder)
+    // {
 
-      if (isa<IntegerType>(lhs.getType()))
-        return builder->create<arith::AddIOp>(op.getLoc(), lhs, rhs);
-      else if(isa<FloatType>(lhs.getType()))
-      return builder->create<arith::AddFOp>(op.getLoc(), lhs, rhs);
-      return builder->create<complex::AddOp>(op.getLoc(), lhs, rhs);
-      return nullptr;
-    }
-    static Value opdispatcher(nova::SubOp op, Value lhs, Value rhs, OpBuilder *builder)
-    {
+    //   if (isa<IntegerType>(lhs.getType()))
+    //     return builder->create<arith::AddIOp>(op.getLoc(), lhs, rhs);
+    //   else if(isa<FloatType>(lhs.getType()))
+    //   return builder->create<arith::AddFOp>(op.getLoc(), lhs, rhs);
+    //   return builder->create<complex::AddOp>(op.getLoc(), lhs, rhs);
+    //   return nullptr;
+    // }
+    // static Value opdispatcher(nova::SubOp op, Value lhs, Value rhs, OpBuilder *builder)
+    // {
 
-      if (isa<IntegerType>(lhs.getType()))
-        return builder->create<arith::SubIOp>(op.getLoc(), lhs, rhs);
-      else if(isa<FloatType>(lhs.getType()))
-      return builder->create<arith::SubFOp>(op.getLoc(), lhs, rhs);
-      return builder->create<complex::SubOp>(op.getLoc(), lhs, rhs);
-      return nullptr;
-    }
-    static Value opdispatcher(nova::MulOp op, Value lhs, Value rhs, OpBuilder *builder)
-    {
+    //   if (isa<IntegerType>(lhs.getType()))
+    //     return builder->create<arith::SubIOp>(op.getLoc(), lhs, rhs);
+    //   else if(isa<FloatType>(lhs.getType()))
+    //   return builder->create<arith::SubFOp>(op.getLoc(), lhs, rhs);
+    //   return builder->create<complex::SubOp>(op.getLoc(), lhs, rhs);
+    //   return nullptr;
+    // }
+    // static Value opdispatcher(nova::MulOp op, Value lhs, Value rhs, OpBuilder *builder)
+    // {
 
-      if (isa<IntegerType>(lhs.getType()))
-        return builder->create<arith::MulIOp>(op.getLoc(), lhs, rhs);
-      if(isa<FloatType>(lhs.getType()))
-      return builder->create<arith::MulFOp>(op.getLoc(), lhs, rhs);
-      if(isa<ComplexType>(lhs.getType())){
-        return builder->create<complex::MulOp>(op.getLoc(), lhs, rhs);
-      }
-      return nullptr;
-    }
-    static Value opdispatcher(nova::PowOp op, Value lhs, Value rhs, OpBuilder *builder)
-    {
+    //   if (isa<IntegerType>(lhs.getType()))
+    //     return builder->create<arith::MulIOp>(op.getLoc(), lhs, rhs);
+    //   if(isa<FloatType>(lhs.getType()))
+    //   return builder->create<arith::MulFOp>(op.getLoc(), lhs, rhs);
+    //   if(isa<ComplexType>(lhs.getType())){
+    //     return builder->create<complex::MulOp>(op.getLoc(), lhs, rhs);
+    //   }
+    //   return nullptr;
+    // }
+    // static Value opdispatcher(nova::PowOp op, Value lhs, Value rhs, OpBuilder *builder)
+    // {
 
-      if (isa<IntegerType>(lhs.getType()))
-        return builder->create<math::IPowIOp>(op.getLoc(), lhs, rhs);
-      else if(isa<FloatType>(lhs.getType()))
-      return builder->create<math::PowFOp>(op.getLoc(), lhs, rhs);
-      else if(isa<ComplexType>(lhs.getType())&&isa<ComplexType>(rhs.getType()))
-      return builder->create<complex::PowOp>(op.getLoc(), lhs, rhs);
+    //   if (isa<IntegerType>(lhs.getType()))
+    //     return builder->create<math::IPowIOp>(op.getLoc(), lhs, rhs);
+    //   else if(isa<FloatType>(lhs.getType()))
+    //   return builder->create<math::PowFOp>(op.getLoc(), lhs, rhs);
+    //   else if(isa<ComplexType>(lhs.getType())&&isa<ComplexType>(rhs.getType()))
+    //   return builder->create<complex::PowOp>(op.getLoc(), lhs, rhs);
       
-      return nullptr;
-    }
+    //   return nullptr;
+    // }
     static Value opdispatcher(nova::CompareOp op,Value lhs,Value rhs,OpBuilder *builder){
       nova::ComparisonType compareType = op.getKind();
         if (isa<IntegerType>(lhs.getType()))
@@ -283,167 +285,167 @@ namespace mlir
       }
 
       // Add operation
-      static Value mapOpImpl(nova::AddOp op, Type resultType, ArrayRef<Value> args,
-                             OpBuilder *builder)
-      {
-        return TypePromotionLowering(op, resultType, args, builder);
-      }
-      // sub operation
-      static Value mapOpImpl(nova::SubOp op, Type resultType, ArrayRef<Value> args,
-                             OpBuilder *builder)
-      {
-        return TypePromotionLowering(op, resultType, args, builder);
-      }
-      // mul operation
-      static Value mapOpImpl(nova::MulOp op, Type resultType, ArrayRef<Value> args,
-                             OpBuilder *builder)
-      {
-        return TypePromotionLowering(op, resultType, args, builder);
-      }
+      // static Value mapOpImpl(nova::AddOp op, Type resultType, ArrayRef<Value> args,
+      //                        OpBuilder *builder)
+      // {
+      //   return TypePromotionLowering(op, resultType, args, builder);
+      // }
+      // // sub operation
+      // static Value mapOpImpl(nova::SubOp op, Type resultType, ArrayRef<Value> args,
+      //                        OpBuilder *builder)
+      // {
+      //   return TypePromotionLowering(op, resultType, args, builder);
+      // }
+      // // mul operation
+      // static Value mapOpImpl(nova::MulOp op, Type resultType, ArrayRef<Value> args,
+      //                        OpBuilder *builder)
+      // {
+      //   return TypePromotionLowering(op, resultType, args, builder);
+      // }
       // pow operation
-      static Value mapOpImpl(nova::PowOp op, Type resultType, ArrayRef<Value> args,
-                             OpBuilder *builder)
-      {
-        return TypePromotionLowering(op, resultType, args, builder);
-      }
+      // static Value mapOpImpl(nova::PowOp op, Type resultType, ArrayRef<Value> args,
+      //                        OpBuilder *builder)
+      // {
+      //   return TypePromotionLowering(op, resultType, args, builder);
+      // }
       // Square operation
-      static Value mapOpImpl(nova::SquareOp op, Type resultType, ArrayRef<Value> args, OpBuilder *builder)
-      {
-        if (isa<FloatType>(resultType))
-          return builder->create<arith::MulFOp>(op.getLoc(), args[0], args[0]);
-        if (isa<IntegerType>(resultType))
-          return builder->create<arith::MulIOp>(op.getLoc(), args[0], args[0]);
-        return nullptr;
-      }
+      // static Value mapOpImpl(nova::SquareOp op, Type resultType, ArrayRef<Value> args, OpBuilder *builder)
+      // {
+      //   if (isa<FloatType>(resultType))
+      //     return builder->create<arith::MulFOp>(op.getLoc(), args[0], args[0]);
+      //   if (isa<IntegerType>(resultType))
+      //     return builder->create<arith::MulIOp>(op.getLoc(), args[0], args[0]);
+      //   return nullptr;
+      // }
       // abs operation
-      static Value mapOpImpl(nova::AbsOp op, Type resultType, ArrayRef<Value> args, OpBuilder *builder)
-      {
-        if (isa<FloatType>(args[0].getType()))
-          return builder->create<math::AbsFOp>(op.getLoc(), args[0]);
-        else if (isa<IntegerType>(resultType))
-          return builder->create<math::AbsIOp>(op.getLoc(), args[0]);
-        else
-          return builder->create<complex::AbsOp>(op.getLoc(), args[0]);
-        return nullptr;
-      }
+      // static Value mapOpImpl(nova::AbsOp op, Type resultType, ArrayRef<Value> args, OpBuilder *builder)
+      // {
+      //   if (isa<FloatType>(args[0].getType()))
+      //     return builder->create<math::AbsFOp>(op.getLoc(), args[0]);
+      //   else if (isa<IntegerType>(resultType))
+      //     return builder->create<math::AbsIOp>(op.getLoc(), args[0]);
+      //   else
+      //     return builder->create<complex::AbsOp>(op.getLoc(), args[0]);
+      //   return nullptr;
+      // }
       // sqrt operation
-      static Value mapOpImpl(nova::SqrtOp op, Type resultType, ArrayRef<Value> args, OpBuilder *builder)
-      {
-        if(isa<ComplexType>(args[0].getType())){
-          return builder->create<complex::SqrtOp>(op.getLoc(),args[0]);
-        }
-        return builder->create<math::SqrtOp>(op.getLoc(), args[0]);
-      }
+      // static Value mapOpImpl(nova::SqrtOp op, Type resultType, ArrayRef<Value> args, OpBuilder *builder)
+      // {
+      //   if(isa<ComplexType>(args[0].getType())){
+      //     return builder->create<complex::SqrtOp>(op.getLoc(),args[0]);
+      //   }
+      //   return builder->create<math::SqrtOp>(op.getLoc(), args[0]);
+      // }
       // div operation
-      static Value mapOpImpl(nova::DivOp op, Type resultType, ArrayRef<Value> args, OpBuilder *builder)
-      {
-        //if complex directly lower it
-        if(isa<ComplexType>(args[0].getType())){
-          return builder->create<complex::DivOp>(op.getLoc(),args[0],args[1]);
-        }
-        // 1..fiding dtype
-        auto flhstype = dyn_cast<mlir::FloatType>(args[0].getType());
-        auto frhstype = dyn_cast<mlir::FloatType>(args[1].getType());
-        auto ilhstype = dyn_cast<mlir::IntegerType>(args[0].getType());
-        auto irhstype = dyn_cast<mlir::IntegerType>(args[1].getType());
-        Value v;
-        // checking if lhs and rhs are same
-        if (isa<FloatType>(args[0].getType()) && isa<FloatType>(args[1].getType()))
-        {
-          // check both bitwidth
-          auto lhsbw = flhstype.getWidth();
-          auto rhsbw = frhstype.getWidth();
-          // selecting bigger one
-          if (lhsbw == rhsbw)
-            return builder->create<arith::DivFOp>(op.getLoc(), args[0], args[1]);
-          else if (lhsbw > rhsbw)
-          {
-            v = builder->create<arith::ExtFOp>(op.getLoc(), getfloattype(lhsbw, builder), args[1]);
-            return builder->create<arith::DivFOp>(op.getLoc(), args[0], v);
-          }
-          else
-          {
-            v = builder->create<arith::ExtFOp>(op.getLoc(), getfloattype(rhsbw, builder), args[0]);
-            return builder->create<arith::DivFOp>(op.getLoc(), v, args[1]);
-          }
-        }
-        else if (isa<IntegerType>(args[0].getType()) && isa<FloatType>(args[1].getType()))
-        {
+      // static Value mapOpImpl(nova::DivOp op, Type resultType, ArrayRef<Value> args, OpBuilder *builder)
+      // {
+      //   //if complex directly lower it
+      //   if(isa<ComplexType>(args[0].getType())){
+      //     return builder->create<complex::DivOp>(op.getLoc(),args[0],args[1]);
+      //   }
+      //   // 1..fiding dtype
+      //   auto flhstype = dyn_cast<mlir::FloatType>(args[0].getType());
+      //   auto frhstype = dyn_cast<mlir::FloatType>(args[1].getType());
+      //   auto ilhstype = dyn_cast<mlir::IntegerType>(args[0].getType());
+      //   auto irhstype = dyn_cast<mlir::IntegerType>(args[1].getType());
+      //   Value v;
+      //   // checking if lhs and rhs are same
+      //   if (isa<FloatType>(args[0].getType()) && isa<FloatType>(args[1].getType()))
+      //   {
+      //     // check both bitwidth
+      //     auto lhsbw = flhstype.getWidth();
+      //     auto rhsbw = frhstype.getWidth();
+      //     // selecting bigger one
+      //     if (lhsbw == rhsbw)
+      //       return builder->create<arith::DivFOp>(op.getLoc(), args[0], args[1]);
+      //     else if (lhsbw > rhsbw)
+      //     {
+      //       v = builder->create<arith::ExtFOp>(op.getLoc(), getfloattype(lhsbw, builder), args[1]);
+      //       return builder->create<arith::DivFOp>(op.getLoc(), args[0], v);
+      //     }
+      //     else
+      //     {
+      //       v = builder->create<arith::ExtFOp>(op.getLoc(), getfloattype(rhsbw, builder), args[0]);
+      //       return builder->create<arith::DivFOp>(op.getLoc(), v, args[1]);
+      //     }
+      //   }
+      //   else if (isa<IntegerType>(args[0].getType()) && isa<FloatType>(args[1].getType()))
+      //   {
 
-          auto lhsbw = ilhstype.getWidth();
-          auto rhsbw = frhstype.getWidth();
-          if (lhsbw == rhsbw)
-          {
-            v = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(rhsbw, builder), args[0]);
-            return builder->create<arith::DivFOp>(op.getLoc(), v, args[1]);
-          }
-          else if (lhsbw > rhsbw)
-          {
-            v = builder->create<arith::ExtFOp>(op.getLoc(), getfloattype(lhsbw, builder), args[1]);
-            auto lhs = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(lhsbw, builder), args[0]);
-            return builder->create<arith::DivFOp>(op.getLoc(), lhs, v);
-          }
-          else
-          {
-            v = builder->create<arith::ExtSIOp>(op.getLoc(), getinttype(rhsbw, builder), args[0]);
-            auto lhs = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(rhsbw, builder), v);
-            return builder->create<arith::DivFOp>(op.getLoc(), lhs, args[1]);
-          }
-        }
-        // lhs if float and rhs is int
-        else if (isa<FloatType>(args[0].getType()) && isa<IntegerType>(args[1].getType()))
-        {
-          auto lhsbw = flhstype.getWidth();
-          auto rhsbw = irhstype.getWidth();
-          if (lhsbw == rhsbw)
-          {
-            v = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(lhsbw, builder), args[1]);
-            return builder->create<arith::DivFOp>(op.getLoc(), args[0], v);
-          }
-          else if (lhsbw > rhsbw)
-          {
-            v = builder->create<arith::ExtSIOp>(op.getLoc(), getinttype(lhsbw, builder), args[1]);
-            auto rhs = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(lhsbw, builder), v);
-            return builder->create<arith::DivFOp>(op.getLoc(), args[0], rhs);
-          }
-          else
-          {
-            v = builder->create<arith::ExtFOp>(op.getLoc(), getfloattype(rhsbw, builder), args[0]);
-            auto rhs = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(rhsbw, builder), args[1]);
-            return builder->create<arith::DivFOp>(op.getLoc(), v, rhs);
-          }
-        }
+      //     auto lhsbw = ilhstype.getWidth();
+      //     auto rhsbw = frhstype.getWidth();
+      //     if (lhsbw == rhsbw)
+      //     {
+      //       v = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(rhsbw, builder), args[0]);
+      //       return builder->create<arith::DivFOp>(op.getLoc(), v, args[1]);
+      //     }
+      //     else if (lhsbw > rhsbw)
+      //     {
+      //       v = builder->create<arith::ExtFOp>(op.getLoc(), getfloattype(lhsbw, builder), args[1]);
+      //       auto lhs = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(lhsbw, builder), args[0]);
+      //       return builder->create<arith::DivFOp>(op.getLoc(), lhs, v);
+      //     }
+      //     else
+      //     {
+      //       v = builder->create<arith::ExtSIOp>(op.getLoc(), getinttype(rhsbw, builder), args[0]);
+      //       auto lhs = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(rhsbw, builder), v);
+      //       return builder->create<arith::DivFOp>(op.getLoc(), lhs, args[1]);
+      //     }
+      //   }
+      //   // lhs if float and rhs is int
+      //   else if (isa<FloatType>(args[0].getType()) && isa<IntegerType>(args[1].getType()))
+      //   {
+      //     auto lhsbw = flhstype.getWidth();
+      //     auto rhsbw = irhstype.getWidth();
+      //     if (lhsbw == rhsbw)
+      //     {
+      //       v = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(lhsbw, builder), args[1]);
+      //       return builder->create<arith::DivFOp>(op.getLoc(), args[0], v);
+      //     }
+      //     else if (lhsbw > rhsbw)
+      //     {
+      //       v = builder->create<arith::ExtSIOp>(op.getLoc(), getinttype(lhsbw, builder), args[1]);
+      //       auto rhs = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(lhsbw, builder), v);
+      //       return builder->create<arith::DivFOp>(op.getLoc(), args[0], rhs);
+      //     }
+      //     else
+      //     {
+      //       v = builder->create<arith::ExtFOp>(op.getLoc(), getfloattype(rhsbw, builder), args[0]);
+      //       auto rhs = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(rhsbw, builder), args[1]);
+      //       return builder->create<arith::DivFOp>(op.getLoc(), v, rhs);
+      //     }
+      //   }
 
-        else if (isa<IntegerType>(args[0].getType()) && isa<IntegerType>(args[1].getType()))
-        {
-          auto lhsbw = ilhstype.getWidth();
-          auto rhsbw = irhstype.getWidth();
-          if (lhsbw == rhsbw)
-          {
-            v = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(rhsbw, builder), args[0]);
-            auto w = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(lhsbw, builder), args[1]);
-            return builder->create<arith::DivFOp>(op.getLoc(), v, w);
-          }
+      //   else if (isa<IntegerType>(args[0].getType()) && isa<IntegerType>(args[1].getType()))
+      //   {
+      //     auto lhsbw = ilhstype.getWidth();
+      //     auto rhsbw = irhstype.getWidth();
+      //     if (lhsbw == rhsbw)
+      //     {
+      //       v = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(rhsbw, builder), args[0]);
+      //       auto w = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(lhsbw, builder), args[1]);
+      //       return builder->create<arith::DivFOp>(op.getLoc(), v, w);
+      //     }
 
-          else if (lhsbw > rhsbw)
-          {
-            v = builder->create<arith::ExtSIOp>(op.getLoc(), getinttype(lhsbw, builder), args[1]);
-            auto r = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(lhsbw, builder), args[0]);
-            auto w = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(lhsbw, builder), v);
-            return builder->create<arith::DivFOp>(op.getLoc(), r, w);
-          }
+      //     else if (lhsbw > rhsbw)
+      //     {
+      //       v = builder->create<arith::ExtSIOp>(op.getLoc(), getinttype(lhsbw, builder), args[1]);
+      //       auto r = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(lhsbw, builder), args[0]);
+      //       auto w = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(lhsbw, builder), v);
+      //       return builder->create<arith::DivFOp>(op.getLoc(), r, w);
+      //     }
 
-          else
-          {
-            v = builder->create<arith::ExtSIOp>(op.getLoc(), getinttype(rhsbw, builder), args[0]);
-            auto r = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(rhsbw, builder), v);
-            auto w = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(rhsbw, builder), args[1]);
-            return builder->create<arith::DivFOp>(op.getLoc(), r, w);
-          }
-        }
+      //     else
+      //     {
+      //       v = builder->create<arith::ExtSIOp>(op.getLoc(), getinttype(rhsbw, builder), args[0]);
+      //       auto r = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(rhsbw, builder), v);
+      //       auto w = builder->create<arith::BitcastOp>(op.getLoc(), getfloattype(rhsbw, builder), args[1]);
+      //       return builder->create<arith::DivFOp>(op.getLoc(), r, w);
+      //     }
+      //   }
 
-        return nullptr;
-      }
+      //   return nullptr;
+     // }
 
       // mod operation
       static Value mapOpImpl(nova::ModOp op, Type resultType, ArrayRef<Value> args, OpBuilder *builder)
@@ -574,19 +576,19 @@ namespace mlir
       // EXPONENTS
       //-----------------------------------------------------------
       // exp operaton
-      static Value mapOpImpl(nova::ExpOp op, Type resultType, ArrayRef<Value> args,
-                             OpBuilder *builder)
-      {
-        if (isa<FloatType>(args[0].getType()))
-          return builder->create<math::ExpOp>(op.getLoc(), args[0]);
-        if (isa<IntegerType>(args[0].getType()))
-          return builder->create<math::ExpOp>(op.getLoc(),
-                                              builder->create<arith::SIToFPOp>(op.getLoc(), builder->getF32Type(), args[0]));
-        if(isa<ComplexType>(args[0].getType())){
-          return builder->create<complex::ExpOp>(op.getLoc(),args[0]);
-        }
-        return nullptr;
-      }
+      // static Value mapOpImpl(nova::ExpOp op, Type resultType, ArrayRef<Value> args,
+      //                        OpBuilder *builder)
+      // {
+      //   if (isa<FloatType>(args[0].getType()))
+      //     return builder->create<math::ExpOp>(op.getLoc(), args[0]);
+      //   if (isa<IntegerType>(args[0].getType()))
+      //     return builder->create<math::ExpOp>(op.getLoc(),
+      //                                         builder->create<arith::SIToFPOp>(op.getLoc(), builder->getF32Type(), args[0]));
+      //   if(isa<ComplexType>(args[0].getType())){
+      //     return builder->create<complex::ExpOp>(op.getLoc(),args[0]);
+      //   }
+      //   return nullptr;
+      // }
       // exp2 operaton
       static Value mapOpImpl(nova::Exp2Op op, Type resultType, ArrayRef<Value> args,
                              OpBuilder *builder)
@@ -599,19 +601,19 @@ namespace mlir
         return nullptr;
       }
       // log operaton
-      static Value mapOpImpl(nova::LogOp op, Type resultType, ArrayRef<Value> args,
-                             OpBuilder *builder)
-      {
-        if (isa<FloatType>(args[0].getType()))
-          return builder->create<math::LogOp>(op.getLoc(), args[0]);
-        if (isa<IntegerType>(args[0].getType()))
-          return builder->create<math::LogOp>(op.getLoc(),
-                                              builder->create<arith::SIToFPOp>(op.getLoc(), builder->getF32Type(), args[0]));
-        if(isa<ComplexType>(args[0].getType())){
-          return builder->create<complex::LogOp>(op.getLoc(),args[0]);
-        }
-        return nullptr;
-      }
+      // static Value mapOpImpl(nova::LogOp op, Type resultType, ArrayRef<Value> args,
+      //                        OpBuilder *builder)
+      // {
+      //   if (isa<FloatType>(args[0].getType()))
+      //     return builder->create<math::LogOp>(op.getLoc(), args[0]);
+      //   if (isa<IntegerType>(args[0].getType()))
+      //     return builder->create<math::LogOp>(op.getLoc(),
+      //                                         builder->create<arith::SIToFPOp>(op.getLoc(), builder->getF32Type(), args[0]));
+      //   if(isa<ComplexType>(args[0].getType())){
+      //     return builder->create<complex::LogOp>(op.getLoc(),args[0]);
+      //   }
+      //   return nullptr;
+      // }
       //----------------------------------------------------------------
       // log2 operaton
       static Value mapOpImpl(nova::Log2Op op, Type resultType, ArrayRef<Value> args,
@@ -639,33 +641,33 @@ namespace mlir
       // TRIGNOMENTARY OPERATIONS
       //--------------------------------------------------------------------
       // sin operaton
-      static Value mapOpImpl(nova::SinOp op, Type resultType, ArrayRef<Value> args,
-                             OpBuilder *builder)
-      {
-        if (isa<FloatType>(args[0].getType()))
-          return builder->create<math::SinOp>(op.getLoc(), args[0]);
-        if (isa<IntegerType>(args[0].getType()))
-          return builder->create<math::SinOp>(op.getLoc(),
-                                              builder->create<arith::SIToFPOp>(op.getLoc(), builder->getF32Type(), args[0]));
-        if (isa<ComplexType>(args[0].getType()))
-          return builder->create<complex::SinOp>(op.getLoc(), args[0]);
-        return nullptr;
-      }
+      // static Value mapOpImpl(nova::SinOp op, Type resultType, ArrayRef<Value> args,
+      //                        OpBuilder *builder)
+      // {
+      //   if (isa<FloatType>(args[0].getType()))
+      //     return builder->create<math::SinOp>(op.getLoc(), args[0]);
+      //   if (isa<IntegerType>(args[0].getType()))
+      //     return builder->create<math::SinOp>(op.getLoc(),
+      //                                         builder->create<arith::SIToFPOp>(op.getLoc(), builder->getF32Type(), args[0]));
+      //   if (isa<ComplexType>(args[0].getType()))
+      //     return builder->create<complex::SinOp>(op.getLoc(), args[0]);
+      //   return nullptr;
+      // }
 
       // cos operation
-      static Value mapOpImpl(nova::CosOp op, Type resultType, ArrayRef<Value> args,
-                             OpBuilder *builder)
-      {
-        if (isa<FloatType>(args[0].getType()))
-          return builder->create<math::CosOp>(op.getLoc(), args[0]);
-        if (isa<IntegerType>(args[0].getType()))
-          return builder->create<math::CosOp>(op.getLoc(),
-                                              builder->create<arith::SIToFPOp>(op.getLoc(), builder->getF32Type(), args[0]));
-        if (isa<ComplexType>(args[0].getType()))
-          return builder->create<complex::CosOp>(op.getLoc(), args[0]);
+      // static Value mapOpImpl(nova::CosOp op, Type resultType, ArrayRef<Value> args,
+      //                        OpBuilder *builder)
+      // {
+      //   if (isa<FloatType>(args[0].getType()))
+      //     return builder->create<math::CosOp>(op.getLoc(), args[0]);
+      //   if (isa<IntegerType>(args[0].getType()))
+      //     return builder->create<math::CosOp>(op.getLoc(),
+      //                                         builder->create<arith::SIToFPOp>(op.getLoc(), builder->getF32Type(), args[0]));
+      //   if (isa<ComplexType>(args[0].getType()))
+      //     return builder->create<complex::CosOp>(op.getLoc(), args[0]);
         
-        return nullptr;
-      }
+      //   return nullptr;
+      // }
 
       // tan operation
       static Value mapOpImpl(nova::TanOp op, Type resultType, ArrayRef<Value> args,
@@ -738,18 +740,18 @@ namespace mlir
         return nullptr;
       }
       // tanh operation
-      static Value mapOpImpl(nova::TanhOp op, Type resultType, ArrayRef<Value> args,
-                             OpBuilder *builder)
-      {
-        if (isa<FloatType>(args[0].getType()))
-          return builder->create<math::TanhOp>(op.getLoc(), args[0]);
-        if (isa<IntegerType>(args[0].getType()))
-          return builder->create<math::TanhOp>(op.getLoc(),
-                                               builder->create<arith::SIToFPOp>(op.getLoc(), builder->getF32Type(), args[0]));
-        if (isa<ComplexType>(args[0].getType()))
-          return builder->create<complex::TanhOp>(op.getLoc(), args[0]);
-        return nullptr;
-      }
+      // static Value mapOpImpl(nova::TanhOp op, Type resultType, ArrayRef<Value> args,
+      //                        OpBuilder *builder)
+      // {
+      //   if (isa<FloatType>(args[0].getType()))
+      //     return builder->create<math::TanhOp>(op.getLoc(), args[0]);
+      //   if (isa<IntegerType>(args[0].getType()))
+      //     return builder->create<math::TanhOp>(op.getLoc(),
+      //                                          builder->create<arith::SIToFPOp>(op.getLoc(), builder->getF32Type(), args[0]));
+      //   if (isa<ComplexType>(args[0].getType()))
+      //     return builder->create<complex::TanhOp>(op.getLoc(), args[0]);
+      //   return nullptr;
+      // }
       // asinh operation
       static Value mapOpImpl(nova::AsinhOp op, Type resultType, ArrayRef<Value> args,
                              OpBuilder *builder)
@@ -1075,6 +1077,7 @@ namespace mlir
           registry.insert<linalg::LinalgDialect,
                           tensor::TensorDialect,
                           arith::ArithDialect,
+                          tosa::TosaDialect,
                           func::FuncDialect>();
         }
 
@@ -1097,28 +1100,28 @@ namespace mlir
           target.addLegalDialect<func::FuncDialect>();
           target.addLegalDialect<math::MathDialect>();
 
-          target.addIllegalOp<nova::AbsOp>();
-          target.addIllegalOp<nova::AddOp>();
-          target.addIllegalOp<nova::SubOp>();
-          target.addIllegalOp<nova::MulOp>();
+         // target.addIllegalOp<nova::AbsOp>();
+         // target.addIllegalOp<nova::AddOp>();
+         // target.addIllegalOp<nova::SubOp>();
+          //target.addIllegalOp<nova::MulOp>();
           target.addIllegalOp<nova::MatmulOp>();
-          target.addIllegalOp<nova::PowOp>();
+         // target.addIllegalOp<nova::PowOp>();
           target.addIllegalOp<nova::BroadcastInDimOp>();
           target.addIllegalOp<nova::DivOp>();
           target.addIllegalOp<nova::ModOp>();
-          target.addIllegalOp<nova::SquareOp>();
+       //   target.addIllegalOp<nova::SquareOp>();
           target.addIllegalOp<nova::SqrtOp>();
-          target.addIllegalOp<nova::LogOp>();
-          target.addIllegalOp<nova::ExpOp>();
+        //  target.addIllegalOp<nova::LogOp>();
+        //  target.addIllegalOp<nova::ExpOp>();
           target.addIllegalOp<nova::Exp2Op>();
           target.addIllegalOp<nova::Log2Op>();
           target.addIllegalOp<nova::Log10Op>();
-          target.addIllegalOp<nova::SinOp>();
-          target.addIllegalOp<nova::CosOp>();
+        //  target.addIllegalOp<nova::SinOp>();
+       //   target.addIllegalOp<nova::CosOp>();
           target.addIllegalOp<nova::TanOp>();
           target.addIllegalOp<nova::SinhOp>();
           target.addIllegalOp<nova::CoshOp>();
-          target.addIllegalOp<nova::TanhOp>();
+       //   target.addIllegalOp<nova::TanhOp>();
           target.addIllegalOp<nova::AsinOp>();
           target.addIllegalOp<nova::AcosOp>();
           target.addIllegalOp<nova::AtanOp>();
@@ -1163,29 +1166,29 @@ namespace mlir
     {
       // Use generic converters for pointwise ops
       patterns.add<
-          NovaToLinalgElementwiseConverter<nova::AddOp>,
-          NovaToLinalgElementwiseConverter<nova::SubOp>,
-          NovaToLinalgElementwiseConverter<nova::MulOp>,
-          NovaToLinalgElementwiseConverter<nova::PowOp>,
-          NovaToLinalgElementwiseConverter<nova::AbsOp>,
-          NovaToLinalgElementwiseConverter<nova::DivOp>,
+        //  NovaToLinalgElementwiseConverter<nova::AddOp>,
+         // NovaToLinalgElementwiseConverter<nova::SubOp>,
+          //NovaToLinalgElementwiseConverter<nova::MulOp>,
+        //  NovaToLinalgElementwiseConverter<nova::PowOp>,
+        //  NovaToLinalgElementwiseConverter<nova::AbsOp>,
+        //  NovaToLinalgElementwiseConverter<nova::DivOp>,
           NovaToLinalgElementwiseConverter<nova::ModOp>,
-          NovaToLinalgElementwiseConverter<nova::SquareOp>,
-          NovaToLinalgElementwiseConverter<nova::SqrtOp>,
-          NovaToLinalgElementwiseConverter<nova::LogOp>,
-          NovaToLinalgElementwiseConverter<nova::ExpOp>,
+     //     NovaToLinalgElementwiseConverter<nova::SquareOp>,
+     //     NovaToLinalgElementwiseConverter<nova::SqrtOp>,
+       //   NovaToLinalgElementwiseConverter<nova::LogOp>,
+        //  NovaToLinalgElementwiseConverter<nova::ExpOp>,
           NovaToLinalgElementwiseConverter<nova::Exp2Op>,
           NovaToLinalgElementwiseConverter<nova::Log2Op>,
           NovaToLinalgElementwiseConverter<nova::Log10Op>,
-          NovaToLinalgElementwiseConverter<nova::SinOp>,
-          NovaToLinalgElementwiseConverter<nova::CosOp>,
+        //  NovaToLinalgElementwiseConverter<nova::SinOp>,
+         // NovaToLinalgElementwiseConverter<nova::CosOp>,
           NovaToLinalgElementwiseConverter<nova::TanOp>,
           NovaToLinalgElementwiseConverter<nova::AsinOp>,
           NovaToLinalgElementwiseConverter<nova::AcosOp>,
           NovaToLinalgElementwiseConverter<nova::AtanOp>,
           NovaToLinalgElementwiseConverter<nova::SinhOp>,
           NovaToLinalgElementwiseConverter<nova::CoshOp>,
-          NovaToLinalgElementwiseConverter<nova::TanhOp>,
+       //   NovaToLinalgElementwiseConverter<nova::TanhOp>,
           NovaToLinalgElementwiseConverter<nova::AsinhOp>,
           NovaToLinalgElementwiseConverter<nova::AcoshOp>,
           NovaToLinalgElementwiseConverter<nova::AtanhOp>,

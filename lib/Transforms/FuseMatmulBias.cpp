@@ -8,6 +8,7 @@
 #include "mlir/IR/IRMapping.h"
 #include "mlir/Pass/Pass.h"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
+#include "mlir/Dialect/Tosa/IR/TosaOps.h"
 
 using namespace mlir;
 using namespace mlir::linalg;
@@ -25,7 +26,7 @@ struct FuseMatmulBiasPattern : public OpRewritePattern<GenericOp> {
       Operation *defOp = current.getDefiningOp();
       if (!defOp) return nullptr;
 
-      if (isa<tensor::ExpandShapeOp>(defOp) || isa<tensor::CollapseShapeOp>(defOp) || isa<tensor::CastOp>(defOp)) {
+      if (isa<tensor::ExpandShapeOp>(defOp) || isa<tensor::CollapseShapeOp>(defOp) || isa<tensor::CastOp>(defOp) || isa<tosa::ReshapeOp>(defOp)) {
         reshapes.push_back(defOp);
         current = defOp->getOperand(0);
       } else {
@@ -52,6 +53,20 @@ struct FuseMatmulBiasPattern : public OpRewritePattern<GenericOp> {
         // Inverse of Cast A->B is Cast B->A
         // castOp casts Source->Dest. We want to cast input (type Dest) -> Source.
         return builder.create<tensor::CastOp>(loc, castOp.getSource().getType(), input);
+    } else if (auto tosaReshape = dyn_cast<tosa::ReshapeOp>(reshapeOp)) {
+        auto srcType = cast<RankedTensorType>(tosaReshape->getOperand(0).getType());
+        auto targetShape = srcType.getShape();
+
+        auto shapeType = RankedTensorType::get({static_cast<int64_t>(targetShape.size())}, builder.getIndexType());
+        SmallVector<int64_t> shapeValues(targetShape.begin(), targetShape.end());
+        auto shapeAttr = DenseIntElementsAttr::get(shapeType, shapeValues);
+
+        auto shapeVal = builder.create<tosa::ConstShapeOp>(
+            loc,
+            mlir::tosa::shapeType::get(builder.getContext(), targetShape.size()),
+            shapeAttr);
+
+        return builder.create<tosa::ReshapeOp>(loc, srcType, input, shapeVal);
     }
     return nullptr;
   }
@@ -353,6 +368,9 @@ struct FuseMatmulBiasPattern : public OpRewritePattern<GenericOp> {
         } else if (auto castOp = dyn_cast<tensor::CastOp>(op)) {
              fusedResult = rewriter.create<tensor::CastOp>(
                 loc, castOp.getResult().getType(), fusedResult);
+        } else if (auto tosaReshape = dyn_cast<tosa::ReshapeOp>(op)) {
+             fusedResult = rewriter.create<tosa::ReshapeOp>(
+                loc, tosaReshape.getResult().getType(), fusedResult, tosaReshape->getOperand(1));
         }
     }
 

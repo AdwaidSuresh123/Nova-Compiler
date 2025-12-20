@@ -1,0 +1,75 @@
+
+=== Running FuseMatmulBias Pass ===
+=== FuseMatmulBias Pass Complete ===
+#map = affine_map<(d0, d1, d2, d3, d4, d5) -> (d1, d3, d5)>
+#map1 = affine_map<(d0, d1, d2, d3, d4, d5) -> (d0, d1, d2, d3, d4, d5)>
+#map2 = affine_map<(d0, d1, d2) -> ()>
+#map3 = affine_map<(d0, d1, d2) -> (d0, d1, d2)>
+#map4 = affine_map<(d0, d1, d2, d3) -> (d0, d1, d3)>
+#map5 = affine_map<(d0, d1, d2, d3) -> (d0, d3, d2)>
+#map6 = affine_map<(d0, d1, d2, d3) -> (d0, d1, d2)>
+#map7 = affine_map<(d0, d1, d2) -> (0, d1, d2)>
+module {
+  func.func @main1(%arg0: tensor<2x2x2xf32>, %arg1: tensor<2x2xf32>, %arg2: tensor<1x2x2xf32>) -> tensor<2x2x2xf32> {
+    %cst = arith.constant 0.000000e+00 : f32
+    %0 = tosa.const_shape  {values = dense<2> : tensor<3xindex>} : () -> !tosa.shape<3>
+    %1 = tosa.const_shape  {values = dense<[1, 2, 2]> : tensor<3xindex>} : () -> !tosa.shape<3>
+    %2 = tosa.reshape %arg1, %1 : (tensor<2x2xf32>, !tosa.shape<3>) -> tensor<1x2x2xf32>
+    %3 = tensor.empty() : tensor<2x1x1x2x1x2xf32>
+    %4 = linalg.generic {indexing_maps = [#map, #map1], iterator_types = ["parallel", "parallel", "parallel", "parallel", "parallel", "parallel"]} ins(%2 : tensor<1x2x2xf32>) outs(%3 : tensor<2x1x1x2x1x2xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      linalg.yield %in : f32
+    } -> tensor<2x1x1x2x1x2xf32>
+  
+    %5 = tosa.reshape %4, %0 : (tensor<2x1x1x2x1x2xf32>, !tosa.shape<3>) -> tensor<2x2x2xf32>
+    %6 = tensor.empty() : tensor<2x2x2xf32>
+    %7 = linalg.generic {indexing_maps = [#map2, #map3], iterator_types = ["parallel", "parallel", "parallel"]} ins(%cst : f32) outs(%6 : tensor<2x2x2xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      linalg.yield %in : f32
+    } -> tensor<2x2x2xf32>
+    %8 = linalg.generic {indexing_maps = [#map4, #map5, #map6], iterator_types = ["parallel", "parallel", "parallel", "reduction"]} ins(%arg0, %5 : tensor<2x2x2xf32>, tensor<2x2x2xf32>) outs(%7 : tensor<2x2x2xf32>) {
+    ^bb0(%in: f32, %in_0: f32, %out: f32):
+      %13 = arith.mulf %in, %in_0 : f32
+      %14 = arith.addf %out, %13 : f32
+      linalg.yield %14 : f32
+    } -> tensor<2x2x2xf32>
+    %9 = tensor.empty() : tensor<2x2x2xf32>
+    %10 = linalg.generic {indexing_maps = [#map7, #map3], iterator_types = ["parallel", "parallel", "parallel"]} ins(%arg2 : tensor<1x2x2xf32>) outs(%9 : tensor<2x2x2xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      linalg.yield %in : f32
+    } -> tensor<2x2x2xf32>
+    %11 = tensor.empty() : tensor<2x2x2xf32>
+    %12 = linalg.generic {indexing_maps = [#map3, #map3, #map3], iterator_types = ["parallel", "parallel", "parallel"]} ins(%8, %10 : tensor<2x2x2xf32>, tensor<2x2x2xf32>) outs(%11 : tensor<2x2x2xf32>) {
+    ^bb0(%in: f32, %in_0: f32, %out: f32):
+      %13 = arith.addf %in, %in_0 : f32
+      linalg.yield %13 : f32
+    } -> tensor<2x2x2xf32>
+    return %12 : tensor<2x2x2xf32>
+  }
+}
+
+..............
+//this is the one before lowering to generic
+#map = affine_map<(d0, d1, d2) -> (0, d1, d2)>
+#map1 = affine_map<(d0, d1, d2) -> (d0, d1, d2)>
+module {
+  func.func @main1(%arg0: tensor<2x2x2xf32>, %arg1: tensor<2x2xf32>, %arg2: tensor<1x2x2xf32>) -> tensor<2x2x2xf32> {
+    %0 = tosa.const_shape  {values = dense<[1, 2, 2]> : tensor<3xindex>} : () -> !tosa.shape<3>
+    %1 = tosa.reshape %arg1, %0 : (tensor<2x2xf32>, !tosa.shape<3>) -> tensor<1x2x2xf32>
+    %2 = tosa.const_shape  {values = dense<[2, 1, 1]> : tensor<3xindex>} : () -> !tosa.shape<3>
+    %3 = tosa.tile %1, %2 : (tensor<1x2x2xf32>, !tosa.shape<3>) -> tensor<2x2x2xf32>
+    %cst = arith.constant dense<0.000000e+00> : tensor<1xf32>
+    %cst_0 = arith.constant dense<0.000000e+00> : tensor<1xf32>
+    %cst_1 = arith.constant 0.000000e+00 : f32
+    %4 = tensor.empty() : tensor<2x2x2xf32>
+    %5 = linalg.fill ins(%cst_1 : f32) outs(%4 : tensor<2x2x2xf32>) -> tensor<2x2x2xf32>
+    %6 = linalg.batch_matmul ins(%arg0, %3 : tensor<2x2x2xf32>, tensor<2x2x2xf32>) outs(%5 : tensor<2x2x2xf32>) -> tensor<2x2x2xf32>
+    %7 = tensor.empty() : tensor<2x2x2xf32>
+    %8 = linalg.generic {indexing_maps = [#map, #map1], iterator_types = ["parallel", "parallel", "parallel"]} ins(%arg2 : tensor<1x2x2xf32>) outs(%7 : tensor<2x2x2xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      linalg.yield %in : f32
+    } -> tensor<2x2x2xf32>
+    %9 = tosa.add %6, %8 : (tensor<2x2x2xf32>, tensor<2x2x2xf32>) -> tensor<2x2x2xf32>
+    return %9 : tensor<2x2x2xf32>
+  }
+}
