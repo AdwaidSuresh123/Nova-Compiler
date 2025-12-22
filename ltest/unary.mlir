@@ -5,9 +5,9 @@
 // }
 //}
 module {
-  func.func @main(%arg0: tensor<1x2x3xi32>) -> tensor<1x3x2xi32> {
-    %1=nova.transpose %arg0  : tensor<1x2x3xi32>
- return %1 :tensor<1x3x2xi32>
+  func.func @main(%arg0: tensor<2x2x2xi32>) -> tensor<2x2x2xf32> {
+    %1=nova.softmax %arg0  : tensor<2x2x2xi32>
+ return %1 :tensor<2x2x2xf32>
  }
 }
 //module {

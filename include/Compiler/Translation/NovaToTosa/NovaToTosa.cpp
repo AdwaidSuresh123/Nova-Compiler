@@ -870,26 +870,59 @@ return builder->create<tosa::TransposeOp>(
         nova::ReductionKind kind= nova::ReductionKind::MAX;
         auto shape=NovaOpTosaOp::shapeFind(inputType,dimension);
         auto tempresult = RankedTensorType::get(shape, restype.getElementType());
+        //creating cast - only if element types differ
+        if (inputType.getElementType() != restype.getElementType()) {
+          input=rewriter.create<tosa::CastOp>(loc,restype,input);
+        }
 
-        Value cast = rewriter.create<tosa::CastOp>(op.getLoc(), restype, input);
+        auto axisAttr = rewriter.getI32IntegerAttr(dimension);
+        Value op1=rewriter.create<tosa::ReduceMaxOp>(loc,tempresult,input,axisAttr);
 
-
-        Value op1=rewriter.create<nova::ReduceOp>(loc,kind,cast,tempresult,keepdims,dim);
-         //step2  
-        //create a nova sub op with input and op1
-        Value op2=rewriter.create<nova::SubOp>(loc,input,op1);
+        //step2  
+        //create a TOSA sub op with input and op1
+        Value op2=rewriter.create<tosa::SubOp>(loc,restype,input,op1);
         //step3
-        //create  a exp op
-        Value op3=rewriter.create<nova::ExpOp>(loc,op2);
+        //create  a TOSA exp op
+        Value op3=rewriter.create<tosa::ExpOp>(loc,restype,op2);
         //step4
-        //create a nova reduce op with sum attribute
-        kind=nova::ReductionKind::SUM;
-
-        Value op4=rewriter.create<nova::ReduceOp>(loc,kind,op3,tempresult,keepdims,dim);
-        //step 5
-        //create div op with op4 and op3
-        Value op5=rewriter.create<nova::DivOp>(loc,op3,op4);
+        //create a TOSA reduce sum
+        Value op4=rewriter.create<tosa::ReduceSumOp>(loc,tempresult,op3,axisAttr);
+        
+        //step 5  
+        //Explicitly broadcast op4 to match op3's shape for division
+        //op3 is tensor<8x128x128xf32>, op4 is tensor<8x128x1xf32>
+        //We need to tile op4 along dimension 2 to broadcast it
+        SmallVector<int64_t> multiples;
+        auto op3Shape = cast<RankedTensorType>(op3.getType()).getShape();
+        auto op4Shape = cast<RankedTensorType>(op4.getType()).getShape();
+        for (size_t i = 0; i < op3Shape.size(); ++i) {
+          if (i < op4Shape.size()) {
+            multiples.push_back(op3Shape[i] / op4Shape[i]);
+          } else {
+            multiples.push_back(1);
+          }
+        }
+        
+        auto shapeType = RankedTensorType::get({static_cast<int64_t>(multiples.size())}, 
+                                                rewriter.getIndexType());
+        auto shapeAttr = DenseIntElementsAttr::get(shapeType, multiples);
+        Value multiplesConst = rewriter.create<tosa::ConstShapeOp>(
+            loc,
+            mlir::tosa::shapeType::get(rewriter.getContext(), multiples.size()),
+            shapeAttr);
+        
+        Value op4_broadcast = rewriter.create<tosa::TileOp>(
+            loc, restype, op4, multiplesConst);
+        
+        //create TOSA div: reciprocal(op4_broadcast) * op3
+        Value recip = rewriter.create<tosa::ReciprocalOp>(loc,restype,op4_broadcast);
+        auto shift = rewriter.create<mlir::arith::ConstantOp>(
+            loc,
+            DenseElementsAttr::get(RankedTensorType::get({1}, rewriter.getI8Type()),
+                                  rewriter.getI8IntegerAttr(0)));
+        Value op5 = rewriter.create<tosa::MulOp>(loc,restype,op3,recip,shift);
         rewriter.replaceOp(op,op5);
+
 
         return success();
 

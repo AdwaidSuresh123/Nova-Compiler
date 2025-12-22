@@ -1,6 +1,6 @@
 module {
   func.func @main(%arg0: tensor<1x8x3xf32>,%arg1:tensor<1x8x3xi16>) -> tensor<1x8x3xf32> {
-    %1=nova.add %arg0, %arg1 : tensor<1x8x3xf32> ,tensor<1x8x3xi16>
+    %1=nova.div %arg0, %arg1 : tensor<1x8x3xf32> ,tensor<1x8x3xi16>
  return %1 :tensor<1x8x3xf32>
  }
 }
